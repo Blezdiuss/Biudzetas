@@ -53,7 +53,16 @@
     rec = new SR(); rec.lang = 'lt-LT'; rec.continuous = true; rec.interimResults = true;
     rec.onresult = function(ev){ var t = ''; for(var i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript + ' '; txt.value = t.trim(); };
     rec.onerror = function(ev){
-      if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed') st.textContent = 'Leiskite naudoti mikrofoną: adreso juostoje paspauskite spynelę → Mikrofonas → Leisti.';
+      if(ev.error === 'not-allowed' || ev.error === 'service-not-allowed' || ev.error === 'audio-capture'){
+        var kl = ev.error;
+        var rodyk = function(busena){
+          if(kl === 'audio-capture') st.textContent = 'Nerastas mikrofonas. Patikrinkite, ar kompiuteris ar telefonas jį turi ir ar jis prijungtas.';
+          else if(busena === 'denied') st.textContent = 'Mikrofonas užblokuotas šiai svetainei: paspauskite ženkliuką kairėje nuo adreso → Mikrofonas → Leisti, tada atnaujinkite puslapį.';
+          else if(busena === 'granted') st.textContent = 'Naršyklė leidžia, bet mikrofono neleidžia pats įrenginys. Windows: Nustatymai → Privatumas ir sauga → Mikrofonas → įjunkite „Leisti programoms…“ ir „Leisti darbalaukio programoms…“. Telefone: Nustatymai → Programos → Chrome → Leidimai → Mikrofonas → Leisti.';
+          else st.textContent = 'Leiskite naudoti mikrofoną: kai naršyklė paklaus, spauskite „Leisti“.';
+        };
+        try { navigator.permissions.query({name:'microphone'}).then(function(r){ rodyk(r.state); }, function(){ rodyk(''); }); } catch(_) { rodyk(''); }
+      }
       else if(ev.error === 'no-speech') st.textContent = 'Nieko negirdėjau. Laikykite mygtuką ir kalbėkite.';
       else if(ev.error === 'network') st.textContent = 'Balsui atpažinti reikia interneto.';
     };
